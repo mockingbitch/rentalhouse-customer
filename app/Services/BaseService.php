@@ -2,26 +2,28 @@
 
 namespace App\Services;
 
-use App\Core\Logger\Log;
 use App\Enum\ErrorCodes;
 use App\Enum\General;
-use App\Exceptions\ApiException;
-use App\Helpers\Common;
-use App\Helpers\ResponseHelper;
+use App\Helpers\Helper;
+use App\Helpers\Paginator;
+use App\Models\User\Definitions\UserConstants;
 use App\Models\User\Definitions\UserDefs;
 use App\Repositories\BaseRepository;
 use Exception;
+use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Query\Builder;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use PhpParser\Node\Expr\Array_;
 
 abstract class BaseService
 {
     /**
      * Main repository
-     * @var BaseRepository;
+     * @var BaseRepository $repository
      */
     protected BaseRepository $repository;
 
@@ -40,42 +42,38 @@ abstract class BaseService
     /**
      * Build common list
      *
-     * @param array $request
+     * @param array $condition
      * @param array $relations
-     * @return array
-     * @throws Exception
+     * @return LengthAwarePaginator
      */
-    public function list(array $request = [], array $relations = []): array
+    public function list(array $condition = [], array $relations = []): LengthAwarePaginator
     {
-        $page     = Common::getPageSize($request)['current_page'];
-        $pageSize = Common::getPageSize($request)['page_size'];
+        $cacheKey = md5('house_list' . http_build_query(request()->all()));
+        if (Cache::has($cacheKey)) {
+            return Cache::get($cacheKey);
+        }
+        $request = request()->all();
+        $pageParams = Paginator::getPageSize();
         try {
-            $condition = $this->buildCondition($request);
-            if (isset($request['name_vi'])) :
-                $condition[] = [
-                    'name_vi',
-                    'like',
-                    '%' . $request['name_vi'] . '%'
-                ];
-            endif;
-            if (isset($request['name_en'])) :
-                $condition[] = [
-                    'name_vi',
-                    'like',
-                    '%' . $request['name_en'] . '%'
-                ];
-            endif;
+            $condition = array_merge($condition, $this->buildCondition($request));
+            if (isset($request['name_vi'])) {
+                $condition[] = ['name_vi', 'like', '%' . $request['name_vi'] . '%'];
+            }
+            if (isset($request['name_en'])) {
+                $condition[] = ['name_vi', 'like', '%' . $request['name_en'] . '%'];
+            }
+
             $data = $this->repository->query()
                 ->where($condition)
                 ->with($relations)
                 ->orderBy('id', General::SORT_DESC)
-                ->paginate($pageSize, ['*'], 'page', $page);
+                ->paginate($pageParams['limit']);
+            Cache::put($cacheKey, $data, 3600);
 
-            return ResponseHelper::list($data, $request);
+            return $data;
         } catch (Exception $exception) {
-            Log::error('error', $exception->getMessage());
-
-            return ResponseHelper::list([], $request);
+            Log::channel('fatal')->error($exception->getMessage());
+            return new LengthAwarePaginator(null, 0, $pageParams['limit'], $pageParams['page']);
         }
     }
 
@@ -160,47 +158,34 @@ abstract class BaseService
     /**
      * Build Condition
      *
-     * @param array $request
+     * @param array $params
      * @return array|int[]
      */
-    protected function buildCondition(array $request = []): array
+    protected function buildCondition(array $params = []): array
     {
-        /** @var Array_ $condition */
-        $condition = [];
-        if (isset($request['created_at_after'])) :
-            $condition[] = [
-                'created_at',
-                '>=',
-                Common::validDate($request['created_at_after'])
-            ];
-        endif;
-        if (isset($request['created_at_before'])) :
-            $condition[] = [
-                'created_at',
-                '<=',
-                Common::validDate($request['created_at_before'])
-            ];
-        endif;
-        if (isset($request['id_after'])) :
-            $condition[] = [
-                'id',
-                '>',
-                $request['id_after']
-            ];
-        endif;
+        $condition = collect([
+            isset($params['created_at_after'])
+                ? ['created_at', '>=', Helper::validDate($params['created_at_after'])]
+                : null,
+            isset($params['created_at_before'])
+                ? ['created_at', '<=', Helper::validDate($params['created_at_before'])]
+                : null,
+            isset($params['id_after'])
+                ? ['id', '>', $params['id_after']]
+                : null,
+        ])->filter()->toArray();
+
         if (
-            isset($request['status'])
-            && auth()->user()->role <= UserDefs::ROLE_MANAGER
-        ) :
-            $condition = [
-                'status' => $request['status'],
-            ];
-        endif;
-        if (!auth()->user() || auth()->user()->role > UserDefs::ROLE_MANAGER) :
-            $condition = [
-                'status' => UserDefs::STATUS_ACTIVE,
-            ];
-        endif;
+            auth()->check()
+            && auth()->user()->role <= UserConstants::ROLE_MANAGER
+            && isset($params['status'])
+        ) {
+            $condition['status'] = $params['status'];
+        }
+
+        if (!auth()->check() || auth()->user()->role > UserConstants::ROLE_MANAGER) {
+            $condition['status'] = UserConstants::STATUS_ACTIVE;
+        }
 
         return $condition;
     }

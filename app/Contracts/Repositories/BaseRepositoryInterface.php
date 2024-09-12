@@ -9,13 +9,13 @@ interface BaseRepositoryInterface
      *
      * @return mixed
      */
-    public function query();
+    public function query(): mixed;
 
     /**
      * Get all
      * @return mixed
      */
-    public function getAll();
+    public function getAll(): mixed;
 
     /**
      * Get one
@@ -52,7 +52,7 @@ interface BaseRepositoryInterface
      * @param $id
      * @return mixed
      */
-    public function delete($id);
+    public function delete($id): mixed;
 
     /**
      * Find first with relationship

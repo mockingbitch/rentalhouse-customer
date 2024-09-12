@@ -12,7 +12,20 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        //
+        $pathRepository = glob(app_path('/Repositories') ."/*.php");
+
+        foreach ($pathRepository as $path) {
+            $arrPath = explode('/', $path);
+            $fileNameRepository = end($arrPath);
+            if ($fileNameRepository == 'BaseRepository.php') {
+                continue;
+            }
+            $repoName = preg_replace('/.php$/', '', $fileNameRepository);
+            $this->app->singleton(
+                "App\Contracts\Repositories\\{$repoName}Interface",
+                "App\Repositories\\{$repoName}"
+            );
+        }
     }
 
     /**
