@@ -1,5 +1,6 @@
 <?php
 
+use App\Core\Log\LogFormatter;
 use Monolog\Handler\NullHandler;
 use Monolog\Handler\StreamHandler;
 use Monolog\Handler\SyslogUdpHandler;
@@ -71,6 +72,7 @@ return [
             'level' => env('LOG_LEVEL', 'debug'),
             'days' => env('LOG_DAILY_DAYS', 14),
             'replace_placeholders' => true,
+            'tap' => [App\Core\Log\LogDailyFormatter::class], // Add tap to channel
         ],
 
         'slack' => [
@@ -127,6 +129,61 @@ return [
             'path' => storage_path('logs/laravel.log'),
         ],
 
+        //Custom log
+        'sql' => [
+            'driver' => 'daily',
+            'path'   => storage_path('logs/sql.log'),
+            'level'  => 'info',
+            'tap'    => [
+                LogFormatter::class . ':' . implode(',', [
+                    "datetime:%datetime%\t%message%" . PHP_EOL,
+                    'Y/m/d H:i:s'
+                ])
+            ],
+        ],
+        'warning' => [
+            'driver' => 'single',
+            'path' => storage_path('logs/warn.log'),
+            'level' => 'notice',
+            'tap'    => [
+                LogFormatter::class . ':' . implode(',', [
+                    '[%datetime%] [%level_name%] %extra.class% <%extra.function%(%extra.line%)> %message% %context%' . PHP_EOL,
+                    'Y-m-d H:i:s:v'
+                ])
+            ],
+        ],
+        'info' => [
+            'driver' => 'single',
+            'path' => storage_path('logs/info.log'),
+            'tap'    => [
+                LogFormatter::class . ':' . implode(',', [
+                    '[%datetime%] [%level_name%] %message% %context%' . PHP_EOL,
+                    'Y/m/d H:i:s'
+                ])
+            ],
+        ],
+        'fatal' => [
+            'driver' => 'daily',
+            'path'   => storage_path('logs/fatal.log'),
+            'level'  => 'error',
+            'tap'    => [
+                LogFormatter::class . ':' . implode(',', [
+                    '[%datetime%] [%level_name%] %extra.class% <%extra.function%(%extra.line%)> %message% %context%' . PHP_EOL,
+                    'Y-m-d H:i:s:v'
+                ])
+            ],
+        ],
+        'exception' => [
+            'driver' => 'daily',
+            'path'   => storage_path('logs/exception.log'),
+            'level'  => 'warning',
+            'tap'    => [
+                LogFormatter::class . ':' . implode(',', [
+                    '[%datetime%] [%level_name%] %extra.class% <%extra.function%(%extra.line%)> %message% %context%' . PHP_EOL,
+                    'Y-m-d H:i:s:v'
+                ])
+            ],
+        ],
     ],
 
 ];
