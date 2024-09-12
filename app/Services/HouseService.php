@@ -3,14 +3,12 @@
 namespace App\Services;
 
 use App\Contracts\Repositories\HouseRepositoryInterface;
-use App\Core\File\FileService;
+use App\Core\Files\FileManager;
 use App\Enum\ErrorCodes;
 use App\Enum\General;
-use App\Exceptions\ApiException;
-use App\Helpers\Common;
-use App\Helpers\ResponseHelper;
 use App\Models\House\Definitions\HouseDefs;
 use Exception;
+use Illuminate\Pagination\LengthAwarePaginator;
 
 class HouseService extends BaseService
 {
@@ -29,52 +27,19 @@ class HouseService extends BaseService
     /**
      * List House
      *
-     * @param array $request
-     * @return array
+     * @return LengthAwarePaginator
      */
-    public function listHouse(array $request = []): array
+    public function listHouse(): LengthAwarePaginator
     {
-        $page     = Common::getPageSize($request)['current_page'];
-        $pageSize = Common::getPageSize($request)['page_size'];
-        try {
-            $condition = $this->buildCondition($request);
-            if (isset($request['name'])) :
-                $condition[] = [
-                    'name',
-                    'like',
-                    '%' . $request['name'] . '%'
-                ];
-            endif;
-            if (isset($request['province_code'])) :
-                $condition[] = [
-                    'province_code' => $request['province_code']
-                ];
-            endif;
-            if (isset($request['district_code'])) :
-                $condition[] = [
-                    'district_code' => $request['district_code']
-                ];
-            endif;
-            if (isset($request['ward_code'])) :
-                $condition[] = [
-                    'ward_code' => $request['ward_code']
-                ];
-            endif;
-            if (isset($request['category_id'])) :
-                $condition[] = [
-                    'category_id' => $request['category_id']
-                ];
-            endif;
-            $data = $this->houseRepository->query()
-                ->where($condition)
-                ->with(['lessor', 'rooms'])
-                ->orderBy('id', General::SORT_DESC)
-                ->paginate($pageSize, ['*'], 'page', $page);
+        $request = request()->toArray();
+        $condition = array_filter([
+            'province_code' => $request['province_code'] ?? null,
+            'district_code' => $request['district_code'] ?? null,
+            'ward_code'     => $request['ward_code'] ?? null,
+            'category_id'   => $request['category_id'] ?? null,
+        ]);
 
-            return ResponseHelper::list($data, $request);
-        } catch (Exception $exception) {
-            return ResponseHelper::list([], $request);
-        }
+        return $this->list($condition);
     }
 
     /**
@@ -88,15 +53,15 @@ class HouseService extends BaseService
     {
         try {
             $request['lessor_id'] = auth()->user()->id;
-            if ($request['thumbnail']) :
-                $request['thumbnail'] = FileService::storeFile(
+            if ($request['thumbnail']) {
+                $request['thumbnail'] = FileManager::storeFile(
                     $request['thumbnail'],
                     HouseDefs::FILE_PATH
                 );
-            endif;
-            if (isset($request['method']) && $request['method'] == General::REQUEST_METHOD_DRAFT) :
+            }
+            if (isset($request['method']) && $request['method'] == General::REQUEST_METHOD_DRAFT) {
                 $request['status'] = HouseDefs::STATUS_DRAFT;
-            endif;
+            }
 
             return $this->houseRepository->create($request);
         } catch (Exception $exception) {
@@ -115,17 +80,17 @@ class HouseService extends BaseService
     public function updateHouse(int $id, array $request = []): mixed
     {
         try {
-            if (!$house = $this->houseRepository->find($id)) :
+            if (!$house = $this->houseRepository->find($id)) {
                 throw new ApiException(
                     ErrorCodes::NOT_FOUND,
                     __('message.error.not_found')
                 );
-            endif;
-//            FileService::removeFile(
+            }
+//            FileManager::removeFile(
 //                $house->thumbnail,
 //                HouseDefs::FILE_PATH
 //            );
-            $request['thumbnail'] = FileService::storeFile(
+            $request['thumbnail'] = FileManager::storeFile(
                 $request['thumbnail'],
                 HouseDefs::FILE_PATH
             );
