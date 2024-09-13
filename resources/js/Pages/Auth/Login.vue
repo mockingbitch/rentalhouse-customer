@@ -1,5 +1,6 @@
 <template>
     <AuthLayout>
+        <v-toastify></v-toastify>
         <div class="container">
             <div class="row mt-lg-n10 mt-md-n11 mt-n10 justify-content-center">
                 <div class="col-xl-4 col-lg-5 col-md-7 mx-auto">
@@ -57,6 +58,7 @@ import { ref } from 'vue';
 import { useForm } from "@inertiajs/inertia-vue3";
 import AuthLayout from "@/Pages/Auth/AuthLayout.vue";
 import VIcon from "@/Icons/VIcon.vue";
+import VToastify from "@/Components/Toastify/VToastify.vue";
 
 const form = useForm({
     email: '',
