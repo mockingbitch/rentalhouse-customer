@@ -15,6 +15,7 @@ use App\Contracts\Repositories\TagRepositoryInterface;
 use App\Contracts\Repositories\RoomRepositoryInterface;
 use App\Exceptions\ApiException;
 use Exception;
+use Illuminate\Pagination\LengthAwarePaginator;
 
 class RoomService extends BaseService
 {
@@ -34,40 +35,18 @@ class RoomService extends BaseService
 
     /**
      * List House
+     * Created by PhongTranNTQ
      *
-     * @param array $request
-     * @return array
-     * @throws Exception
+     * @return LengthAwarePaginator
      */
-    public function listRoom(array $request = []): array
+    public function listRoom(): LengthAwarePaginator
     {
-        $page     = Common::getPageSize($request)['current_page'];
-        $pageSize = Common::getPageSize($request)['page_size'];
-        try {
-            $condition = $this->buildCondition($request);
-            if (isset($request['name'])) :
-                $condition[] = [
-                    'name',
-                    'like',
-                    '%' . $request['name'] . '%'
-                ];
-            endif;
-            if (isset($request['tags'])) :
-                $condition[] = [
-                    'category_id' => $request['category_id']
-                ];
-            endif;
-            $data = $this->roomRepository->query()
-                ->where($condition)
-                ->with(['house'])
-                ->orderBy('id', General::SORT_DESC)
-                ->paginate($pageSize, ['*'], 'page', $page);
+        $request = request()->toArray();
+        $condition = array_filter([
+            'category_id'   => $request['tag'] ?? null,
+        ]);
 
-            return ResponseHelper::list($data, $request);
-        } catch (Exception $exception) {
-            Log::error('error', $exception->getMessage());
-            return ResponseHelper::list([], $request);
-        }
+        return $this->list($condition, ['house']);
     }
 
     /**

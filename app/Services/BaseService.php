@@ -6,7 +6,7 @@ use App\Enum\ErrorCodes;
 use App\Enum\General;
 use App\Helpers\Helper;
 use App\Helpers\Paginator;
-use App\Models\User\Definitions\UserConstants;
+use App\Models\User\Definitions\UserConst;
 use App\Models\User\Definitions\UserDefs;
 use App\Repositories\BaseRepository;
 use Exception;
@@ -48,111 +48,110 @@ abstract class BaseService
      */
     public function list(array $condition = [], array $relations = []): LengthAwarePaginator
     {
-        $cacheKey = md5('house_list' . http_build_query(request()->all()));
-        if (Cache::has($cacheKey)) {
-            return Cache::get($cacheKey);
-        }
         $request = request()->all();
-        $pageParams = Paginator::getPageSize();
-        try {
-            $condition = array_merge($condition, $this->buildCondition($request));
+        $cacheKey = md5(request()->path() . http_build_query($request));
+
+        return Cache::remember($cacheKey, 3600, function () use ($relations, $request) {
+            $pageParams = Paginator::getPageSize();
+            $condition = $this->buildCondition($request);
             if (isset($request['name_vi'])) {
                 $condition[] = ['name_vi', 'like', '%' . $request['name_vi'] . '%'];
             }
             if (isset($request['name_en'])) {
-                $condition[] = ['name_vi', 'like', '%' . $request['name_en'] . '%'];
+                $condition[] = ['name_en', 'like', '%' . $request['name_en'] . '%'];
             }
+            try {
+                return $this->repository->query()
+                    ->where($condition)
+                    ->with($relations)
+                    ->orderBy('id', General::SORT_DESC)
+                    ->paginate($pageParams['limit']);
+            } catch (Exception $exception) {
+                Log::channel('fatal')->error(
+                    'Message: ' . $exception->getMessage()
+                    . ' File: ' . $exception->getFile()
+                    . ' Line: ' . $exception->getLine()
+                );
 
-            $data = $this->repository->query()
-                ->where($condition)
-                ->with($relations)
-                ->orderBy('id', General::SORT_DESC)
-                ->paginate($pageParams['limit']);
-            Cache::put($cacheKey, $data, 3600);
-
-            return $data;
-        } catch (Exception $exception) {
-            Log::channel('fatal')->error($exception->getMessage());
-            return new LengthAwarePaginator(null, 0, $pageParams['limit'], $pageParams['page']);
-        }
+                return new LengthAwarePaginator([], 0, $pageParams['limit'], $pageParams['page']);
+            }
+        });
     }
 
     /**
      * Create new resource
      *
      * @param array $request
-     * @return mixed
-     * @throws ApiException
-     * @throws Exception
+     * @return mixed|null
      */
     public function store(array $request = []): mixed
     {
         $request['created_by'] = auth()->user()->id ?? null;
-        if ($result = $this->repository->create($request)) :
+        if ($result = $this->repository->create($request)) {
             return $result;
-        endif;
-        Log::error('error', __('message.common.error.bad_request'));
+        }
+        Log::channel('fatal')->error(
+            'Message: Unable to create a new resource due to an error.'
+            . ' Request: ' . json_encode($request)
+        );
 
-        throw new ApiException(ErrorCodes::BAD_REQUEST);
+        return null;
     }
 
     /**
      * Show resource detail
      *
      * @param string $id
-     * @return mixed
-     * @throws ApiException
+     * @return mixed|null
      */
     public function show(string $id): mixed
     {
         $result = $this->repository->find($id);
-        if (!$result) :
-            throw new ApiException(
-                ErrorCodes::NOT_FOUND,
-                __('message.error.not_found')
-            );
-        endif;
+        if (!$result) {
+            return null;
+        }
 
         return $result;
     }
 
     /**
-     * Update resource
+     * Update an existing resource
      *
      * @param string $id
      * @param array $request
      * @return false|mixed
-     * @throws ApiException
      */
     public function update(string $id, array $request = []): mixed
     {
         if ($result = $this->repository->update($id, $request)) :
             return $result;
         endif;
-
-        throw new ApiException(
-            ErrorCodes::NOT_FOUND,
-            __('message.error.not_found')
+        Log::channel('fatal')->error(
+            'Message: Unable to update a resource due to an error.'
+            . ' Resource ID: ' . $id
+            . ' Request: ' . json_encode($request)
         );
+
+        return false;
     }
 
     /**
-     * Soft delete resource
+     * Soft delete an existing resource
      *
      * @param int $id
      * @return bool
-     * @throws ApiException
      */
     public function destroy(int $id): bool
     {
         if ($result = $this->repository->softDelete($id)) :
             return $result;
         endif;
-
-        throw new ApiException(
-            ErrorCodes::NOT_FOUND,
-            __('message.error.not_found')
+        Log::channel('fatal')->error(
+            'Message: Unable to delete a resource due to an error.'
+            . ' Resource ID: ' . $id
         );
+
+        return false;
     }
 
     /**
@@ -177,32 +176,16 @@ abstract class BaseService
 
         if (
             auth()->check()
-            && auth()->user()->role <= UserConstants::ROLE_MANAGER
+            && auth()->user()->role <= UserConst::ROLE_MANAGER
             && isset($params['status'])
         ) {
             $condition['status'] = $params['status'];
         }
 
-        if (!auth()->check() || auth()->user()->role > UserConstants::ROLE_MANAGER) {
-            $condition['status'] = UserConstants::STATUS_ACTIVE;
+        if (!auth()->check() || auth()->user()->role > UserConst::ROLE_MANAGER) {
+            $condition['status'] = UserConst::STATUS_ACTIVE;
         }
 
         return $condition;
-    }
-
-    /**
-     * Get Type master data
-     * @param int $key
-     * @param int|null $key_id
-     * @return Model|Builder|Collection
-     */
-    public function getType(int $key, ?int $key_id): Model|Builder|Collection
-    {
-        $query = DB::table('types_mst')->where('key', $key);
-        if ($key_id) :
-            return $query->where('key_id', $key_id)->first();
-        endif;
-
-        return $query->get();
     }
 }

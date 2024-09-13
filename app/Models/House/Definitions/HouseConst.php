@@ -1,17 +1,17 @@
 <?php
 
-namespace App\Models\Room\Definitions;
+namespace App\Models\House\Definitions;
 
 /**
- * RoomConstants
+ * HouseConst
  *
- * @package App\Models\Room\Definitions
+ * @package App\Models\House\Definitions
  * @copyright Copyright (c) 2024, jarvis.phongtran
  * @author Phong <jarvis.phongtran@gmail.com>
  */
-interface RoomConstants
+interface HouseConst
 {
-    public const FILE_PATH = 'public/Rooms';
+    public const FILE_PATH = 'public/houses';
 
     public const STATUS_INACTIVE_CODE = 0;
     public const STATUS_DRAFT_CODE    = 1;

@@ -3,13 +3,13 @@
 namespace App\Models\User\Definitions;
 
 /**
- * UserConstants
+ * UserConst
  *
  * @package App\Models\User\Definitions
  * @copyright Copyright (c) 2024, jarvis.phongtran
  * @author Phong <jarvis.phongtran@gmail.com>
  */
-interface UserConstants
+interface UserConst
 {
     public const ROLE_ROOT_CODE     = -1;
     public const ROLE_ADMIN_CODE    = 0;
