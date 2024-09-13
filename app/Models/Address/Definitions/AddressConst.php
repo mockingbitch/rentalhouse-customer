@@ -3,13 +3,13 @@
 namespace App\Models\Address\Definitions;
 
 /**
- * Address\AddressConstants
+ * Address\AddressConst
  *
  * @package App\Models\Address\Definitions
  * @copyright Copyright (c) 2024, jarvis.phongtran
  * @author Phong <jarvis.phongtran@gmail.com>
  */
-interface AddressConstants
+interface AddressConst
 {
     public const PROVINCE_CODE  = 'province_code';
     public const DISTRICT_CODE  = 'district_code';

@@ -1,6 +1,7 @@
 <?php
 
-use App\Http\Controllers\HomeController;
+use App\Http\Controllers\AuthController;
+use App\Http\Controllers\Customer\HomeController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/not-found', function () {
@@ -14,3 +15,7 @@ Route::get('change-language/{language}', [HomeController::class, 'changeLanguage
 Route::get('test', function () {
     return view('test');
 });
+
+//Authentication
+Route::get('/login', [AuthController::class, 'loginView'])->name('login');
+Route::post('/login', [AuthController::class, 'login']);

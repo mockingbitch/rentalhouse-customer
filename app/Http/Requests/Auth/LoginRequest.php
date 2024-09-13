@@ -7,6 +7,9 @@ use Illuminate\Contracts\Validation\ValidationRule;
 
 class LoginRequest extends BaseRequest
 {
+    public string $email;
+    public string $password;
+
     /**
      * Get the validation rules that apply to the request.
      *

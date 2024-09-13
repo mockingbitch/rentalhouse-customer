@@ -1,11 +1,10 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Customer;
 
+use App\Http\Controllers\Controller;
 use App\Services\HouseService;
 use Illuminate\Http\RedirectResponse;
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Session;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -23,9 +22,14 @@ class HomeController extends Controller
     {
     }
 
-    public function index(Request $request): Response
+    /**
+     * Home page
+     * Created by PhongTranNTQ
+     *
+     * @return Response
+     */
+    public function index(): Response
     {
-        dd($this->houseService->listHouse());
         return Inertia::render('HomePage', [
             'houses' => $this->houseService->listHouse(),
         ]);
@@ -33,6 +37,7 @@ class HomeController extends Controller
 
     /**
      * Change language
+     * Created by PhongTranNTQ
      *
      * @param string $language
      * @return RedirectResponse

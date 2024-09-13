@@ -2,13 +2,13 @@
 
 namespace App\Services;
 
-use App\Contracts\Repositories\HouseRepositoryInterface;
-use App\Core\Files\FileManager;
-use App\Enum\ErrorCodes;
-use App\Enum\General;
-use App\Models\House\Definitions\HouseDefs;
-use Exception;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Pagination\LengthAwarePaginator;
+use App\Enum\General;
+use App\Core\Files\FileManager;
+use App\Models\House\Definitions\HouseConst;
+use App\Contracts\Repositories\HouseRepositoryInterface;
+use Exception;
 
 class HouseService extends BaseService
 {
@@ -44,10 +44,10 @@ class HouseService extends BaseService
 
     /**
      * Store new house
+     * Created by PhongTranNTQ
      *
      * @param array $request
      * @return mixed
-     * @throws ApiException
      */
     public function storeHouse(array $request = []): mixed
     {
@@ -56,35 +56,41 @@ class HouseService extends BaseService
             if ($request['thumbnail']) {
                 $request['thumbnail'] = FileManager::storeFile(
                     $request['thumbnail'],
-                    HouseDefs::FILE_PATH
+                    HouseConst::FILE_PATH
                 );
             }
             if (isset($request['method']) && $request['method'] == General::REQUEST_METHOD_DRAFT) {
-                $request['status'] = HouseDefs::STATUS_DRAFT;
+                $request['status'] = HouseConst::STATUS_DRAFT;
             }
 
             return $this->houseRepository->create($request);
         } catch (Exception $exception) {
-            throw new ApiException(ErrorCodes::BAD_REQUEST);
+            Log::channel('fatal')->error(
+                'Message: ' . $exception->getMessage()
+                . ' File: ' . $exception->getFile()
+                . ' Line: ' . $exception->getLine()
+            );
+
+            return false;
         }
     }
 
     /**
-     * Update house by Id
+     * Update house by ID
+     * Created by PhongTranNTQ
      *
      * @param int $id
      * @param array $request
      * @return mixed
-     * @throws ApiException
      */
     public function updateHouse(int $id, array $request = []): mixed
     {
         try {
             if (!$house = $this->houseRepository->find($id)) {
-                throw new ApiException(
-                    ErrorCodes::NOT_FOUND,
-                    __('message.error.not_found')
+                Log::channel('warning')->error(
+                    'Message: Resource not found ' . $id
                 );
+                return false;
             }
 //            FileManager::removeFile(
 //                $house->thumbnail,
@@ -92,17 +98,18 @@ class HouseService extends BaseService
 //            );
             $request['thumbnail'] = FileManager::storeFile(
                 $request['thumbnail'],
-                HouseDefs::FILE_PATH
+                HouseConst::FILE_PATH
             );
 
             return $this->houseRepository->update($id, $request);
         } catch (Exception $exception) {
-            throw new ApiException(ErrorCodes::BAD_REQUEST);
-        }
-    }
+            Log::channel('fatal')->error(
+                'Message: ' . $exception->getMessage()
+                . ' File: ' . $exception->getFile()
+                . ' Line: ' . $exception->getLine()
+            );
 
-    public function getTop()
-    {
-        return 5;
+            return false;
+        }
     }
 }
