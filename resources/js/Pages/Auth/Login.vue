@@ -30,7 +30,7 @@
                         <div class="card-body">
                             <form role="form" @submit.prevent="submit">
                                 <div class="mb-3">
-                                    <input type="email" v-model="form.email" class="form-control" placeholder="Email" aria-label="Email">
+                                    <input type="text" v-model="form.email" class="form-control" placeholder="Email" aria-label="Email">
                                 </div>
                                 <div class="mb-3">
                                     <input type="password" v-model="form.password" class="form-control" placeholder="Password" aria-label="Password">
@@ -59,6 +59,7 @@ import { useForm } from "@inertiajs/inertia-vue3";
 import AuthLayout from "@/Pages/Auth/AuthLayout.vue";
 import VIcon from "@/Icons/VIcon.vue";
 import VToastify from "@/Components/Toastify/VToastify.vue";
+import VErrorLabel from "@/Components/Common/VErrorLabel.vue";
 
 const form = useForm({
     email: '',

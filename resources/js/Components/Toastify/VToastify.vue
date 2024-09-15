@@ -1,4 +1,9 @@
 <script setup>
+const props = defineProps({
+    notifications: Object,
+});
+
+
 </script>
 
 <template>
@@ -9,8 +14,8 @@
                 <div class="notification-app-name">TASK TRACKER</div>
                 <div class="notification-title">Task Due</div>
                 <div class="notification-body">Your task "Write Report" is due tomorrow.</div>
-            </div><div class="notification-options">Options</div>
-            <div class="notification-close iconoir-xmark"></div>
+            </div><div class="notification-options">X</div>
+<!--            <div class="notification-close iconoir-xmark"></div>-->
         </div>
         <div class="notification-item" data-type="alert">
             <i class="notification-icon iconoir-timer"></i>
@@ -18,12 +23,12 @@
                 <div class="notification-app-name">TASK TRACKER</div>
                 <div class="notification-title">Task Due</div>
                 <div class="notification-body">Your task "Write Report" is due tomorrow.</div>
-            </div><div class="notification-options">Options</div>
-            <div class="notification-close iconoir-xmark"></div>
+            </div><div class="notification-options">X</div>
+<!--            <div class="notification-close iconoir-xmark"></div>-->
         </div>
     </div>
 </template>
-<style lang="scss" scoped>
+<style scoped>
 .notification-area {
     position: fixed;
     top: 10px;
