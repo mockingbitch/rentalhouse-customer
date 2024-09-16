@@ -1,4 +1,5 @@
 <script setup>
+import VIcon from "@/Icons/VIcon.vue";
 const props = defineProps({
     notifications: Object,
 });
@@ -9,26 +10,18 @@ const props = defineProps({
 <template>
     <div id="notification-area" class="notification-area">
         <div class="notification-item" data-type="alert">
-            <i class="notification-icon iconoir-timer"></i>
-            <div>
+            <v-icon name="IconFacebook" />
+            <div class="mx-4">
                 <div class="notification-app-name">TASK TRACKER</div>
                 <div class="notification-title">Task Due</div>
                 <div class="notification-body">Your task "Write Report" is due tomorrow.</div>
-            </div><div class="notification-options">X</div>
-<!--            <div class="notification-close iconoir-xmark"></div>-->
-        </div>
-        <div class="notification-item" data-type="alert">
-            <i class="notification-icon iconoir-timer"></i>
-            <div>
-                <div class="notification-app-name">TASK TRACKER</div>
-                <div class="notification-title">Task Due</div>
-                <div class="notification-body">Your task "Write Report" is due tomorrow.</div>
-            </div><div class="notification-options">X</div>
+            </div>
+            <div class="notification-options">X</div>
 <!--            <div class="notification-close iconoir-xmark"></div>-->
         </div>
     </div>
 </template>
-<style scoped>
+<style lang="scss" scoped>
 .notification-area {
     position: fixed;
     top: 10px;

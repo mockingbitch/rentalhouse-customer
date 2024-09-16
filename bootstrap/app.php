@@ -6,9 +6,11 @@ use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Validation\ValidationException;
 use SebastianBergmann\Invoker\TimeoutException;
 use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
+use Symfony\Component\HttpKernel\Exception\UnauthorizedHttpException;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
@@ -28,7 +30,7 @@ return Application::configure(basePath: dirname(__DIR__))
                     'Message: ' . $e->getMessage()
                     . ' File: ' . $e->getFile()
                     . ' Line: ' . $e->getLine()
-            );
+                );
             }
             if ($e instanceof BindingResolutionException) {
                 Log::channel('fatal')->error(
@@ -52,9 +54,11 @@ return Application::configure(basePath: dirname(__DIR__))
                 return redirect()->route('timeout');
             endif;
 
-            return redirect()
-                ->back()
-                ->withErrors($e->getMessage());
+            if (! $e instanceof ValidationException) {
+                return redirect()
+                    ->back()
+                    ->withErrors($e->getMessage());
+            }
         });
         $exceptions->dontReportDuplicates();
     })->create();

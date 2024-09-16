@@ -5,6 +5,7 @@ namespace App\Http\Requests\Auth;
 use App\Http\Requests\BaseRequest;
 use Illuminate\Contracts\Validation\Rule;
 use Illuminate\Contracts\Validation\ValidationRule;
+use Illuminate\Validation\Validator;
 
 class LoginRequest extends BaseRequest
 {
@@ -35,6 +36,19 @@ class LoginRequest extends BaseRequest
             'email.required'    => __('validation.required'),
             'email.email'       => __('validation.email'),
             'password.required' => __('validation.required'),
+        ];
+    }
+
+    /**
+     * Get custom attributes for validator errors.
+     *
+     * @return array<string, string>
+     */
+    public function attributes(): array
+    {
+        return [
+            'email'     => 'email address',
+            'password'  => 'password',
         ];
     }
 }
