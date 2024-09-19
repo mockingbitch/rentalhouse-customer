@@ -4,7 +4,6 @@ namespace App\Providers;
 
 use App\Core\Database\QueryDebugger;
 use Illuminate\Support\ServiceProvider;
-use Illuminate\Support\Facades\Validator;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -35,8 +34,5 @@ class AppServiceProvider extends ServiceProvider
     public function boot(): void
     {
         QueryDebugger::setup();
-        Validator::replacer('inertia', function ($validator) {
-            return back()->withErrors($validator)->withInput();
-        });
     }
 }

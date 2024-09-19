@@ -1,8 +1,22 @@
 <script setup>
+import { usePage } from '@inertiajs/inertia-vue3';
+import VToastify from "@/Components/Toastify/VToastify.vue";
+import {ref, watch} from "vue";
 
+const page = usePage();
+const notifications = ref();
+
+watch(
+    () => page?.props?.value?.flash,
+    (newValue, oldValue) => {
+        notifications.value = newValue;
+        console.log(notifications)
+    }
+);
 </script>
 
 <template>
+    <v-toastify v-show="notifications" :notifications="notifications"></v-toastify>
     <nav class="navbar navbar-expand-lg position-absolute top-0 z-index-3 w-100 shadow-none my-3 navbar-transparent mt-4">
         <div class="container">
             <a class="navbar-brand font-weight-bolder ms-lg-0 ms-3 text-white" href="../pages/dashboard.html">

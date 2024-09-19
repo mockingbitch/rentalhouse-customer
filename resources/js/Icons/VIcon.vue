@@ -5,11 +5,17 @@
 <script>
 import IconFacebook from "@/Icons/IconFacebook.vue";
 import IconGoogle from "@/Icons/IconGoogle.vue";
+import IconWarning from "@/Icons/IconWarning.vue";
+import IconInfo from "@/Icons/IconInfo.vue";
+import IconSuccess from "@/Icons/IconSuccess.vue";
 
 export default {
     components: {
         IconFacebook,
-        IconGoogle
+        IconGoogle,
+        IconWarning,
+        IconInfo,
+        IconSuccess,
     },
     props: {
         name: {

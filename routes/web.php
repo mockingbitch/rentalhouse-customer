@@ -19,3 +19,4 @@ Route::get('test', function () {
 //Authentication
 Route::get('/login', [AuthController::class, 'loginView'])->name('login');
 Route::post('/login', [AuthController::class, 'login']);
+Route::get('/register', [AuthController::class, 'registerView'])->name('register');
