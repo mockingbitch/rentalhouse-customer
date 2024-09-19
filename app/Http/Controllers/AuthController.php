@@ -75,13 +75,27 @@ class AuthController extends Controller
     }
 
     /**
-     * Register
+     * Register View
+     * Created by PhongTranNTQ
      *
-     * @param RegisterRequest $request
-     * @return JsonResponse
+     * @Route get("/register", name="register")
+     * @return Response
      */
-    public function register(RegisterRequest $request): JsonResponse
+    public function registerView(): Response
     {
+        return Inertia::render('Auth/Register');
+    }
+
+    /**
+     * Register account by Email
+     * Created by PhongTranNTQ
+     *
+     * @Route post("/register")
+     * @return Response
+     */
+    public function register(RegisterRequest $request)
+    {
+        dd(1);
         try {
             $input = $request->all();
             $input['password'] = bcrypt($input['password']);
