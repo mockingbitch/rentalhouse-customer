@@ -15,7 +15,7 @@ createInertiaApp({
             .mixin({
                 methods: {
                     lang: function () {
-                        return usePage().props.language.original;
+                        return usePage().props.language.original || 'vi';
                     }
                 },
             })

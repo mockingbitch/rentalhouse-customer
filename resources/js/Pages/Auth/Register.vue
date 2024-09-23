@@ -22,7 +22,7 @@ const errors = ref({
 
 const submit = () => {
     isLoading.value = true;
-    Inertia.post('/register', form, {
+    Inertia.post(route('register.post'), form, {
         onError: (err) => {
             isLoading.value = false;
             errors.value = err;
@@ -112,7 +112,7 @@ const submit = () => {
                                 </div>
                                 <p class="text-sm mt-3 mb-0">
                                     Already have an account?
-                                    <Link :href="route('login')" class="text-dark font-weight-bolder">
+                                    <Link :href="route('login.view')" class="text-dark font-weight-bolder">
                                         Login
                                     </Link>
                                 </p>

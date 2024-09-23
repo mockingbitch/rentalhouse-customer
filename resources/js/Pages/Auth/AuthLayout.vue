@@ -10,7 +10,6 @@ watch(
     () => page?.props?.value?.flash,
     (newValue, oldValue) => {
         notifications.value = newValue;
-        console.log(notifications)
     }
 );
 </script>

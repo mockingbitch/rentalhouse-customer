@@ -5,12 +5,18 @@ namespace App\Http\Requests\Auth;
 use App\Http\Requests\BaseRequest;
 use Illuminate\Contracts\Validation\Rule;
 use Illuminate\Contracts\Validation\ValidationRule;
-use Illuminate\Validation\Validator;
 
 class LoginRequest extends BaseRequest
 {
-    public string $email;
-    public string $password;
+    public ?string $email;
+    public ?string $password;
+
+    public function __construct()
+    {
+        $this->email = '';
+        $this->password = '';
+        parent::__construct();
+    }
 
     /**
      * Get the validation rules that apply to the request.
@@ -20,7 +26,7 @@ class LoginRequest extends BaseRequest
     public function rules(): array
     {
         return [
-            'email'     => 'required|max:50|email',
+            'email'     => 'required|max:50',
             'password'  => 'required|min:6|max:20',
         ];
     }

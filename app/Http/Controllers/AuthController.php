@@ -5,11 +5,15 @@ namespace App\Http\Controllers;
 use App\Enum\ErrorCodes;
 use App\Http\Requests\Auth\RegisterRequest;
 use App\Http\Requests\Auth\LoginRequest;
+use App\Models\User\User;
+use Exception;
 use Illuminate\Foundation\Application;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Routing\Redirector;
 use Illuminate\Support\Facades\Auth;
 use App\Contracts\Repositories\UserRepositoryInterface;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -50,24 +54,24 @@ class AuthController extends Controller
      */
     public function login(LoginRequest $request): Application|Redirector|RedirectResponse
     {
-        if (Auth::attempt([
-            'email'    => $request->email,
-            'password' => $request->password
-        ])
-        ) {
-            if (auth()->user()->email_verified_at === null) :
-                return redirect()
-                    ->route('register.success')
-                    ->with('email', $request->email);
-            endif;
-            if (session()->has('url.destination')) :
-                return redirect(session()->pull('url.destination'));
-            endif;
+        $credentials = $request->only('email', 'password');
+        $remember = $request->has('remember') ?? false;
+        Log::info('Attempting login for email: ' . $credentials['email']);
 
-            return redirect()
-                ->route('top')
+        if (Auth::attempt($credentials, $remember)) {
+            // Regenerate session to prevent session fixation
+            $request->session()->regenerate();
+
+            if (null === auth()->user()->email_verified_at) {
+                return redirect()
+                    ->route('home')
+                    ->with('email', $request->email);
+            }
+
+            return redirect()->intended(route('home'))
                 ->with('success', __('messages.login.SM-001'));
         }
+        Log::warning('Login failed for email: ' . $credentials['email']);
 
         throw ValidationException::withMessages([
             'error' => __('messages.login.EM-001'),
@@ -91,45 +95,26 @@ class AuthController extends Controller
      * Created by PhongTranNTQ
      *
      * @Route post("/register")
-     * @return Response
+     * @param RegisterRequest $request
+     * @return RedirectResponse
+     * @throws ValidationException
      */
-    public function register(RegisterRequest $request)
+    public function register(RegisterRequest $request): RedirectResponse
     {
-        dd(1);
-        try {
-            $input = $request->all();
-            $input['password'] = bcrypt($input['password']);
-            $user = $this->userRepository->create($input);
-            $result['token'] = $user->createToken(env('APP_NAME'))->accessToken;
-            $result['first_name'] = $user->first_name;
-            $result['last_name'] = $user->last_name;
-            $name = $user->first_name . ' ' . $user->last_name;
-            $host = request()->root();
-            $client = new ClientRepository();
-            $newClient = $client->create(
-                $user->id,
-                $name,
-                $host,
-                'users',
-                false,
-                true
-            );
-            $result['credential'] = [
-                'client_name'       => $newClient['name'],
-                'client_id'         => $newClient['id'],
-                'client_secret_key' => $newClient['secret'],
-            ];
+//        try {
+            $user = new User();
+            $user->email = $request->email;
+            $user->password = Hash::make($request->password);
+            $user->save();
 
-            return response()->json([
-                'success'   => true,
-                'result'    => $result
-            ], 200);
-        } catch (Exception $e) {
-            return response()->json([
-                'success' => false,
-                'message' => $e
-            ], 200);
-        }
+            throw ValidationException::withMessages([
+                'success' => __('messages.login.SM-001'),
+            ]);
+            //        } catch (Exception $e) {
+//            throw ValidationException::withMessages([
+//                'error' => __('messages.login.EM-001'),
+//            ]);
+//        }
     }
 
     /**

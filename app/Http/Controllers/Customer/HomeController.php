@@ -18,8 +18,7 @@ class HomeController extends Controller
      */
     public function __construct(
         protected HouseService $houseService,
-    )
-    {
+    ) {
     }
 
     /**
@@ -30,9 +29,7 @@ class HomeController extends Controller
      */
     public function index(): Response
     {
-        return Inertia::render('HomePage', [
-            'houses' => $this->houseService->listHouse(),
-        ]);
+        return Inertia::render('HomePage');
     }
 
     /**

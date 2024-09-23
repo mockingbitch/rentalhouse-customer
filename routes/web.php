@@ -17,6 +17,7 @@ Route::get('test', function () {
 });
 
 //Authentication
-Route::get('/login', [AuthController::class, 'loginView'])->name('login');
-Route::post('/login', [AuthController::class, 'login']);
-Route::get('/register', [AuthController::class, 'registerView'])->name('register');
+Route::get('/login', [AuthController::class, 'loginView'])->name('login.view');
+Route::post('/login', [AuthController::class, 'login'])->name('login.post');
+Route::get('/register', [AuthController::class, 'registerView'])->name('register.view');
+Route::post('/register', [AuthController::class, 'register'])->name('register.post');

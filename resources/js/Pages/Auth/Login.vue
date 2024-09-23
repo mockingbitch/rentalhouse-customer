@@ -1,7 +1,6 @@
 <script setup>
 import { ref } from 'vue';
-import { useForm } from "@inertiajs/inertia-vue3";
-import { Inertia } from '@inertiajs/inertia';
+import { useForm } from '@inertiajs/vue3';
 import { Link } from '@inertiajs/vue3';
 import AuthLayout from "@/Pages/Auth/AuthLayout.vue";
 import VIcon from "@/Icons/VIcon.vue";
@@ -21,12 +20,12 @@ const errors = ref({
 
 const submit = () => {
     isLoading.value = true;
-    Inertia.post('/login', form, {
-        onError: (err) => {
+    form.post(route('login.post'), {
+        onFinish: () => {
+            form.reset('password');
             isLoading.value = false;
-            errors.value = err;
-        },
-    });
+        }
+    })
 };
 </script>
 
@@ -100,7 +99,7 @@ const submit = () => {
                                 </div>
                                 <p class="text-sm mt-3 mb-0">
                                     Create an account?
-                                    <Link :href="route('register')" class="text-dark font-weight-bolder">
+                                    <Link :href="route('register.view')" class="text-dark font-weight-bolder">
                                         Register
                                     </Link>
                                 </p>

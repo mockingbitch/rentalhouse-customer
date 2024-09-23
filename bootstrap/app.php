@@ -62,8 +62,6 @@ return Application::configure(basePath: dirname(__DIR__))
             } else {
                 Session::flash('error', $e->getMessage());
             }
-
-            Session::flash('info', 'ádsadsad!');
         });
         $exceptions->dontReportDuplicates();
     })->create();

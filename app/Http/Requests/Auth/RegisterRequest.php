@@ -47,8 +47,8 @@ class RegisterRequest extends BaseRequest
     {
         return [
             'email'    => __('label.user.field.email'),
-//            'password' => __('label.user.field.password'),
-//            'confirm_password' => __('label.user.field.confirm_password')
+            'password' => __('label.user.field.password'),
+            'confirm_password' => __('label.user.field.confirm_password')
         ];
     }
 
