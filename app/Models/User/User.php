@@ -14,12 +14,6 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authentication;
 use Illuminate\Notifications\Notifiable;
 
-/**
- * App\User
- *
- * @property int $id
- * @property int $role
- */
 class User extends Authentication
 {
     use HasFactory, Notifiable;
